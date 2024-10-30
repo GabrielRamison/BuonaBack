@@ -1,44 +1,45 @@
-// backend/src/server.js
+// src/server.js
 const express = require('express');
 const http = require('http');
+const cors = require('cors');
 require('dotenv').config();
 
-const app = require('./app');
+const app = express();
 const server = http.createServer(app);
-const io = require('socket.io')(server);
 
-// Gerenciar conexões de chat
-const chatConnections = new Map();
+// Configuração do CORS
+app.use(cors({
+  origin: "*",
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  credentials: true
+}));
 
-// backend/src/server.js
+// Configuração do Socket.IO com CORS
+const io = require('socket.io')(server, {
+  cors: {
+    origin: "*", // Em produção, você deve especificar os domínios permitidos
+    methods: ["GET", "POST"],
+    credentials: true
+  }
+});
+
 io.on('connection', (socket) => {
   console.log('Usuário conectado:', socket.id);
 
-  socket.on('join_room', (winery_id) => {
-    console.log(`Usuário ${socket.id} entrou na sala da vinícola ${winery_id}`);
-    socket.join(`winery_${winery_id}`);
+  socket.on('join_room', (data) => {
+    console.log(`Usuário ${socket.id} entrando na sala ${data.winery_id}`);
+    socket.join(`winery_${data.winery_id}`);
   });
 
   socket.on('send_message', (data) => {
     console.log('Mensagem recebida:', data);
-    const messageData = {
+    io.to(`winery_${data.winery_id}`).emit('receive_message', {
       id: Date.now(),
       content: data.message,
-      sender_id: data.user_id || socket.id,
-      sender_name: data.user_name || 'Usuário',
+      sender_id: data.user_id,
+      sender_name: data.user_name,
       created_at: new Date().toISOString()
-    };
-    // Emite para todos na sala, incluindo o remetente
-    console.log('Mensagem formatada:', messageData); // Debug
-    io.in(`winery_${data.winery_id}`).emit('receive_message', messageData);
-  });
-
-  socket.on('typing', (data) => {
-    if (!data.user_id) {
-      data.user_id = socket.id; // Usar ID do socket se não tiver user_id
-    }
-    console.log('Usuário digitando:', data);
-    socket.to(`winery_${data.winery_id}`).emit('user_typing', data);
+    });
   });
 
   socket.on('disconnect', () => {
@@ -47,6 +48,7 @@ io.on('connection', (socket) => {
 });
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+
+server.listen(PORT, '0.0.0.0', () => {
+  console.log(`Servidor rodando em http://localhost:${PORT}`);
 });
