@@ -1,23 +1,15 @@
 // src/server.js
-const express = require('express');
 const http = require('http');
-const cors = require('cors');
+const app = require('./app');  // Importa o app configurado
 require('dotenv').config();
 
-const app = express();
+// Criar servidor HTTP com o app
 const server = http.createServer(app);
 
-// Configuração do CORS
-app.use(cors({
-  origin: "*",
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  credentials: true
-}));
-
-// Configuração do Socket.IO com CORS
+// Configuração do Socket.IO
 const io = require('socket.io')(server, {
   cors: {
-    origin: "*", // Em produção, você deve especificar os domínios permitidos
+    origin: "*",
     methods: ["GET", "POST"],
     credentials: true
   }
@@ -48,7 +40,8 @@ io.on('connection', (socket) => {
 });
 
 const PORT = process.env.PORT || 3000;
+const HOST = '10.1.1.171'; // Seu IP local
 
-server.listen(PORT, '0.0.0.0', () => {
-  console.log(`Servidor rodando em http://localhost:${PORT}`);
+server.listen(PORT, HOST, () => {
+  console.log(`Servidor rodando em http://${HOST}:${PORT}`);
 });
