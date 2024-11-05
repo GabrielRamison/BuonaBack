@@ -10,7 +10,9 @@ module.exports = {
       user: 'root',
       password: '',
       database: 'vinicola_db',
-      port: 3306
+      port: 3306,
+      charset: 'utf8mb4',
+      collate: 'utf8mb4_unicode_ci'
     },
     migrations: {
       directory: path.resolve(__dirname, 'src', 'database', 'migrations')

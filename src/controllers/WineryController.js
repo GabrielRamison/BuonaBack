@@ -63,7 +63,10 @@ class WineryController {
         phone,
         email,
         website,
-        business_hours: JSON.stringify(business_hours)
+        business_hours: JSON.stringify(business_hours),
+        is_active: true,
+        created_at: knex.fn.now(),
+        updated_at: knex.fn.now()
       });
 
       return res.status(201).json({ id });
@@ -84,7 +87,10 @@ class WineryController {
 
       await knex('wineries')
         .where({ id })
-        .update(updateData);
+        .update({
+          ...updateData,
+          updated_at: knex.fn.now()
+        });
 
       return res.json({ message: 'Vinícola atualizada com sucesso' });
     } catch (error) {
@@ -99,7 +105,10 @@ class WineryController {
 
       await knex('wineries')
         .where({ id })
-        .update({ is_active: false });
+        .update({ 
+          is_active: false,
+          updated_at: knex.fn.now()
+        });
 
       return res.json({ message: 'Vinícola desativada com sucesso' });
     } catch (error) {
